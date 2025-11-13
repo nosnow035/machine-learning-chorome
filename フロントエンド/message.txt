@@ -1,0 +1,135 @@
+// background.js
+
+// ★★★デバッグ1★★★
+// このファイルが読み込まれたら、まずコンソールに出力
+console.log('[Furigana] background.jsが読み込まれました。');
+
+// 1. 右クリックメニューの作成
+chrome.runtime.onInstalled.addListener(() => {
+
+  // ★★★デバッグ2★★★
+  // onInstalledイベントが発火したか確認
+  console.log('[Furigana] onInstalledイベントが発火しました。メニューを作成します。');
+
+  chrome.contextMenus.create({
+    id: "add-furigana-colab",
+    title: "AI(Colab)でフリガナを振る",
+    contexts: ["selection"]
+  }, () => {
+    // ★★★デバッグ3★★★
+    // メニュー作成が完了したか（または失敗したか）を確認
+    if (chrome.runtime.lastError) {
+      console.error('[Furigana] メニュー作成に失敗しました:', chrome.runtime.lastError.message);
+    } else {
+      console.log('[Furigana] コンテキストメニューが正常に作成されました。');
+    }
+  });
+});
+
+// 2. メニューがクリックされた時の処理
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  
+  // ★★★デバッグ4★★★
+  // メニューがクリックされたか確認
+  console.log('[Furigana] メニューがクリックされました。', info);
+
+  if (info.menuItemId === "add-furigana-colab") {
+    
+    // ★★★デバッグ5★★★
+    // API呼び出し処理に入ったか確認
+    console.log('[Furigana] API呼び出し処理を開始します。');
+
+    const selectedText = info.selectionText;
+
+    // ... (fetch, showPopupなどの処理は変更なし) ...
+    
+    // 3. まずポップアップに「変換中...」と表示する
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: showPopup,
+      args: ["変換中...", selectedText]
+    });
+
+    const COLAB_NGROK_URL = 'https://piacular-semisocialistically-aviana.ngrok-free.dev';
+    const API_ENDPOINT = `${COLAB_NGROK_URL}/predict`;
+    
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: selectedText + "。" }) 
+      });
+
+      if (!response.ok) {
+        throw new Error(`サーバーエラー: ${response.status}`);
+      }
+
+      const data = await response.json(); 
+
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: showPopup,
+        args: [data.prediction, selectedText]
+      });
+
+    } catch (error) {
+      console.error('API呼び出しエラー:', error);
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: showPopup,
+        args: [`エラー: ${error.message}`, selectedText]
+      });
+    }
+  }
+});
+
+// ... (showPopup関数は変更なし) ...
+function showPopup(resultText, originalText) {
+  // ( ... 前回のコードと同じ ... )
+  // すでにポップアップがあれば削除する
+  const oldPopup = document.getElementById('furigana-popup-by-extension');
+  if (oldPopup) {
+    oldPopup.remove();
+  }
+  const popup = document.createElement('div');
+  popup.id = 'furigana-popup-by-extension';
+  Object.assign(popup.style, {
+    position: 'absolute', zIndex: '99999', backgroundColor: '#ffffff',
+    border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    padding: '12px 16px', fontFamily: 'Arial, sans-serif', fontSize: '16px',
+    lineHeight: '1.5', color: '#333', minWidth: '200px', maxWidth: '400px'
+  });
+  const original = document.createElement('div');
+  original.textContent = originalText;
+  Object.assign(original.style, {
+    fontSize: '14px', color: '#888', borderBottom: '1px solid #eee',
+    paddingBottom: '8px', marginBottom: '8px'
+  });
+  popup.appendChild(original);
+  const result = document.createElement('div');
+  result.textContent = resultText;
+  Object.assign(result.style, {
+    fontSize: '18px', fontWeight: 'bold', color: '#111'
+  });
+  if (resultText === "変換中...") {
+    result.style.opacity = '0.5';
+  }
+  popup.appendChild(result);
+  document.body.appendChild(popup);
+  try {
+    const selectionRect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+    popup.style.left = `${selectionRect.left + window.scrollX}px`;
+    popup.style.top = `${selectionRect.bottom + window.scrollY + 5}px`;
+  } catch (e) { /* 選択が解除された場合のエラー無視 */ }
+  function handleClickOutside(event) {
+    if (popup && !popup.contains(event.target)) {
+      popup.remove();
+      document.removeEventListener('click', handleClickOutside);
+    }
+  }
+  setTimeout(() => {
+    document.addEventListener('click', handleClickOutside);
+  }, 100);
+}

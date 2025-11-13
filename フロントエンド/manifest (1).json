@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "ひらがな $\to$ A 変換 (デモ)",
+  "version": "1.0",
+  "description": "選択したテキストのひらがな部分を「A」に置き換えます。",
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "permissions": [
+    "contextMenus",  
+    "activeTab",     
+    "scripting"      
+  ]
+}

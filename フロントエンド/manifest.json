@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "ひらがなA変換ポップアップ",
+  "version": "1.0",
+  "description": "選択したひらがなを'A'に変換し、ポップアップで表示します。",
+
+  "permissions": [
+    "contextMenus",
+    "scripting" 
+  ],
+  "host_permissions": [
+    "<all_urls>" 
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
