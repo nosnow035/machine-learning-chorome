@@ -13,10 +13,15 @@
 
 サーバーについて
 APIserver_base.ipynbファイルについて
+
 ユーザーが入力したメッセージを、ngrok 上の Public な API エンドポイントに送信する
+
 API サーバーでメッセージを受け付け、LLM 推論結果を返却する
+
 ngrok（後述）で公開する Public URL を経由して、localhost の API エンドポイントにユーザーメッセージを含んだ HTTP Request が届く
+
 FastAPI（後述）によって、届いたリクエストを処理する
+
 Colab 上で LLM 推論を実行する。
 
 
