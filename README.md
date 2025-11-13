@@ -11,7 +11,7 @@
 
 <a href="https://tus.box.com/s/z6u8i0xp5nbkgky86etx5ifnee2kanv6" target="_blank">完成したモデルをboxに置きました。ファイルが2GB近くあります。こちらを押してください。</a>
 
-サーバーについて
+サーバーの
 APIserver_base.ipynbファイルについて
 
 ユーザーが入力したメッセージを、ngrok 上の Public な API エンドポイントに送信する
